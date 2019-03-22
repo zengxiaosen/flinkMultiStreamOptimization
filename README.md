@@ -1,4 +1,7 @@
 # 基于Flink多流Join优化的研究与实现
+1 伪代码  
+2 单流场景下的TimeWindow滚动窗口边界与数据延迟问题  
+3 多流Join场景下的窗口计算触发时机、延时数据丢失问题  
 ## 1 伪代码：
 Flink stream join的形式为Windows join 
 ```$xslt
