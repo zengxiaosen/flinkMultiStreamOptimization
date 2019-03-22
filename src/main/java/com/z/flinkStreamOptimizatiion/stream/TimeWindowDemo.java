@@ -23,7 +23,7 @@ public class TimeWindowDemo {
     
     public static void main(String[] args) throws Exception {
         // 根据event time和窗口时间大小，计算event time所属的窗口开始时间和结束时间
-        test1();
+        // test1();
 
         // 参考因素：delay + windowSize, 情况一，元素在水位以下，但windows还没被触发计算，参照record 5
         // test2();
@@ -32,7 +32,7 @@ public class TimeWindowDemo {
         // test3();
 
         // 参考因素：delay + windowSize，通过增大delay，来增大失序的容忍程度，确保不丢数据
-        // test4();
+        test4();
     }
 
     /**
