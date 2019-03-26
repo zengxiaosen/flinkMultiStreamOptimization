@@ -1,5 +1,8 @@
 package com.z.flinkStreamOptimizatiion.stream;
 
+import com.z.flinkStreamOptimizatiion.rpc.client.RPCClient;
+import com.z.flinkStreamOptimizatiion.rpc.client.RPCException;
+import com.z.flinkStreamOptimizatiion.rpc.demo.DemoClient;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.functions.ReduceFunction;
@@ -39,7 +42,50 @@ public class TimeWindowDemo {
         // test4();
 
         // 测试 parallism
-        test5();
+        // test5();
+
+        // 测试 flink中的rpc调用（比如flatmap）
+        test6();
+
+    }
+
+    private static void test6() throws Exception {
+        final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+
+        // 设置数据源
+        //env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+        DataStream<Tuple3<String, String, Long>> dataStream = env.addSource(new DataSourceForTest4()).name("Demo Source").setParallelism(1);
+
+        DataStream<WordWithCount> windowCount = dataStream.flatMap(new FlatMapFunction<Tuple3<String, String, Long>, WordWithCount>() {
+            @Override
+            public void flatMap(Tuple3<String, String, Long> value, Collector<WordWithCount> collector) throws Exception {
+
+                // 在flink的map算子中，加入rpc调用，作为中间结果获取的模拟
+                int testValue = Integer.valueOf(value.f1);
+                {
+                    RPCClient client = new RPCClient("localhost", 8888);
+                    DemoClient demo = new DemoClient(client);
+                    for (int i = 0; i < 2; i++) {
+                        try {
+                            System.out.printf("fib(%d) = %d\n", i, demo.fib(testValue));
+                            Thread.sleep(100);
+                        } catch (RPCException e) {
+                            System.out.println(e.getMessage());
+                        }
+                    }
+                    Thread.sleep(3000);
+                    client.close();
+                }
+
+
+                collector.collect(new WordWithCount(value.f0, 1L));
+            }
+        }).keyBy("word")
+                .sum("count");
+
+        windowCount.print();
+        env.execute("streaming word count");
+        //Thread.sleep(3000);
 
     }
 
@@ -76,12 +122,9 @@ public class TimeWindowDemo {
             @Override
             public void flatMap(Tuple3<String, String, Long> value, Collector<WordWithCount> collector) throws Exception {
                 collector.collect(new WordWithCount(value.f0, 1L));
-                //collector.collect(new WordWithCount(value.f1, 1L));
-                //collector.collect(new WordWithCount(String.valueOf(value.f2), 1L));
             }
         }).keyBy("word")
         .sum("count");
-
 
         windowCount.print();
         env.execute("streaming word count");

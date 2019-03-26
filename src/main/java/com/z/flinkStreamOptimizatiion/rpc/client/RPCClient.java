@@ -13,11 +13,12 @@ import io.netty.handler.timeout.ReadTimeoutHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 //连接管理 读写消息 链接重连
-public class RPCClient {
+public class RPCClient implements Serializable {
     private final static Logger LOG = LoggerFactory.getLogger(RPCClient.class);
 
     private String ip;
@@ -35,9 +36,15 @@ public class RPCClient {
         this.init();
     }
 
-    public RPCClient rpc(String type, Class<?> reqClass) {
+    /**
+     *
+     * @param type
+     * @param rspClass 服务端返回结果的类型
+     * @return
+     */
+    public RPCClient rpc(String type, Class<?> rspClass) {
         //rpc响应类型的注册快速入口
-        registry.register(type, reqClass);
+        registry.register(type, rspClass);
         return this;
     }
 

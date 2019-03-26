@@ -3,8 +3,10 @@ package com.z.flinkStreamOptimizatiion.rpc.demo;
 import com.z.flinkStreamOptimizatiion.rpc.client.RPCClient;
 import com.z.flinkStreamOptimizatiion.rpc.client.RPCException;
 
+import java.io.Serializable;
+
 //RPC客户端
-public class DemoClient {
+public class DemoClient implements Serializable {
 
     private RPCClient client;
 
@@ -17,8 +19,8 @@ public class DemoClient {
         return (Long) client.send("fib", n);
     }
 
-//RPC客户端要链接远程IP端口，并注册服务输出类(RPC响应类)，
-// 然后分别调用20次斐波那契服务和指数服务，输出结果
+    //RPC客户端要链接远程IP端口，并注册服务输出类(RPC响应类)，
+    // 然后分别调用20次斐波那契服务和指数服务，输出结果
 
     public static void main(String[] args) throws InterruptedException {
         RPCClient client = new RPCClient("localhost", 8888);
