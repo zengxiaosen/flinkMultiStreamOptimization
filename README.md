@@ -382,8 +382,11 @@ element.f1: 6
          */
 ```
 ## 4 针对flink流算子中rpc调用场景，利用netty自研rpc工具
-
-
+server端启动：
+https://github.com/zengxiaosen/flinkMultiStreamOptimization/blob/master/src/main/java/com/z/flinkStreamOptimizatiion/rpc/demo/DemoServer.java  
+flink的算子flatmap中初始化client端，调用rpc服务：
+https://github.com/zengxiaosen/flinkMultiStreamOptimization/blob/master/src/main/java/com/z/flinkStreamOptimizatiion/stream/TimeWindowDemo.java  
+中的test6()
 
 
 
