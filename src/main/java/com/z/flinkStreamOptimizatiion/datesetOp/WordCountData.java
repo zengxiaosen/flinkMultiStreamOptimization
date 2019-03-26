@@ -1,4 +1,4 @@
-package com.z.flinkStreamOptimizatiion.datesetop;
+package com.z.flinkStreamOptimizatiion.datesetOp;
 
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;

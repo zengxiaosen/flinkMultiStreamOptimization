@@ -23,6 +23,22 @@ public class StreamJoinDemo {
      * @throws Exception
      */
     public static void main(String[] args) throws Exception {
+
+        // 双流join
+        test1();
+
+
+
+
+    }
+
+    /**
+     * 普通双流join处理方式：
+     * 缺陷：join窗口的双流数据都是被缓存在内存中的，也就是说，如果某个key上的窗口数据太多就会导致JVM OOM。
+     * 双流join的难点也正是在这里。
+     * @throws Exception
+     */
+    private static void test1() throws Exception {
         /**
          * 当设置参数int windowSize = 10; long delay = 5000L;时
          * 输出为：
@@ -101,9 +117,8 @@ public class StreamJoinDemo {
                     }
                 }).print();
 
+
         env.execute("TimeWindowDemo");
-
-
     }
 
     private static class LeftSelectKey implements KeySelector<Tuple3<String, String, Long>, String> {

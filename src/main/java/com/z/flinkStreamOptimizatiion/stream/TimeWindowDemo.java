@@ -1,5 +1,7 @@
 package com.z.flinkStreamOptimizatiion.stream;
 
+import org.apache.flink.api.common.functions.FlatMapFunction;
+import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.functions.ReduceFunction;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.streaming.api.TimeCharacteristic;
@@ -9,9 +11,11 @@ import org.apache.flink.streaming.api.functions.AssignerWithPeriodicWatermarks;
 import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
 import org.apache.flink.streaming.api.watermark.Watermark;
 import org.apache.flink.streaming.api.windowing.time.Time;
+import org.apache.flink.util.Collector;
 
 import javax.annotation.Nullable;
 import java.text.SimpleDateFormat;
+
 
 /**
  * 单流场景下：
@@ -32,8 +36,57 @@ public class TimeWindowDemo {
         // test3();
 
         // 参考因素：delay + windowSize，通过增大delay，来增大失序的容忍程度，确保不丢数据
-        test4();
+        // test4();
+
+        // 测试 parallism
+        test5();
+
     }
+
+    /**
+     * 主要为了存储单词以及单词出现的次数
+     */
+    public static class WordWithCount{
+        public String word;
+        public long count;
+        public WordWithCount(){}
+        public WordWithCount(String word, long count) {
+            this.word = word;
+            this.count = count;
+        }
+
+        @Override
+        public String toString() {
+            return "WordWithCount{" +
+                    "word='" + word + '\'' +
+                    ", count=" + count +
+                    '}';
+        }
+    }
+
+    private static void test5() throws Exception {
+
+        final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+
+        // 设置数据源
+        //env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+        DataStream<Tuple3<String, String, Long>> dataStream = env.addSource(new DataSourceForTest4()).name("Demo Source").setParallelism(2);
+
+        DataStream<WordWithCount> windowCount = dataStream.flatMap(new FlatMapFunction<Tuple3<String, String, Long>, WordWithCount>() {
+            @Override
+            public void flatMap(Tuple3<String, String, Long> value, Collector<WordWithCount> collector) throws Exception {
+                collector.collect(new WordWithCount(value.f0, 1L));
+                //collector.collect(new WordWithCount(value.f1, 1L));
+                //collector.collect(new WordWithCount(String.valueOf(value.f2), 1L));
+            }
+        }).keyBy("word")
+        .sum("count");
+
+
+        windowCount.print();
+        env.execute("streaming word count");
+    }
+
 
     /**
      * 观察 record 5 和 record 6, 它们的时间窗口如下：

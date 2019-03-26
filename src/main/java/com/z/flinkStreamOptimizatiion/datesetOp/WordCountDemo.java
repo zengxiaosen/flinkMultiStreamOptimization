@@ -1,4 +1,4 @@
-package com.z.flinkStreamOptimizatiion.datesetop;
+package com.z.flinkStreamOptimizatiion.datesetOp;
 
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.common.functions.JoinFunction;
@@ -41,7 +41,7 @@ public class WordCountDemo {
         //test3();
 
         //join 内连接
-        test4();
+        //test4();
 
         //outer join 外连接
         //test5();
@@ -50,7 +50,7 @@ public class WordCountDemo {
         //test6();
 
         //sort partition 在本地对数据集的所有分区进行排序，通过sortPartition()的链接调用来完成对多个字段的排序
-        //test7();
+        test7();
 
 
     }
@@ -299,7 +299,7 @@ public class WordCountDemo {
         counts.print();
     }
 
-    private static DataSet<String> getDataSet(String[] args) {
+    public static DataSet<String> getDataSet(String[] args) {
         final ParameterTool params = ParameterTool.fromArgs(args);
         DataSet<String> text;
         // create execution environment

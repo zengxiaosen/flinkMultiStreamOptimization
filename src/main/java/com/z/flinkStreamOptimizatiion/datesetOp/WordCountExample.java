@@ -1,4 +1,4 @@
-package com.z.flinkStreamOptimizatiion.datesetop;
+package com.z.flinkStreamOptimizatiion.datesetOp;
 
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.java.DataSet;
@@ -16,6 +16,7 @@ import org.apache.flink.util.Collector;
 public class WordCountExample {
     public static void main(String[] args) throws Exception {
         final ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
+        env.setParallelism(100);
 
         DataSet<String> text = env.fromElements(
                 "Who's there?",
