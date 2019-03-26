@@ -386,7 +386,15 @@ server端启动：
 https://github.com/zengxiaosen/flinkMultiStreamOptimization/blob/master/src/main/java/com/z/flinkStreamOptimizatiion/rpc/demo/DemoServer.java  
 flink的算子flatmap中初始化client端，调用rpc服务：
 https://github.com/zengxiaosen/flinkMultiStreamOptimization/blob/master/src/main/java/com/z/flinkStreamOptimizatiion/stream/TimeWindowDemo.java  
-中的test6()
+中的test6()  
+```$xslt
+调用流程：
+一般flink算子中调用rpc都是在每个task上去建立连接，调用，销毁连接。  
+在flatmap之上统一new rpc client不可行，因为此rpc使用netty实现，而netty的bootstrap是final类型，也不能序列化。  
+所以综上所述，需要在每个task上去调用rpc服务。 
+``` 
+
+
 
 
 
