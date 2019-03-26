@@ -2,6 +2,7 @@
 1 伪代码  
 2 单流场景下的TimeWindow滚动窗口边界与数据延迟问题  
 3 多流Join场景下的窗口计算触发时机、延时数据丢失问题  
+4 针对window中rpc调用场景，利用netty自研rpc工具    
 ## 1 伪代码：
 Flink stream join的形式为Windows join 
 ```$xslt
@@ -380,6 +381,9 @@ element.f1: 6
          * window_end_time < watermark, 导致数据丢失了。
          */
 ```
+## 4 针对window中rpc调用场景，利用netty自研rpc工具
+
+
 
 
 
