@@ -3,34 +3,42 @@ package com.z.flinkStreamOptimizatiion.stream;
 import com.google.common.collect.Lists;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.MapFunction;
+import org.apache.flink.api.common.functions.ReduceFunction;
+import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.api.java.tuple.Tuple1;
+import org.apache.flink.api.java.tuple.Tuple2;
+import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.streaming.api.collector.selector.OutputSelector;
 import org.apache.flink.streaming.api.datastream.*;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.co.CoMapFunction;
+import org.apache.flink.streaming.api.functions.windowing.AggregateApplyAllWindowFunction;
 import org.apache.flink.streaming.api.windowing.time.Time;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 //这个类是测试source产生流数据,然后做一些通用操作
 public class NumberStreamDemo {
     public static void main(String[] args) throws Exception {
-        //no paralleSource
-        //test1();
+
+        //no paralleSource 流中的wordcount窗口
+        test1();
 
         //paralleSource
         //test2();
 
         //richParalleSource
-        //test3();
+        // test3();
 
         //from Collection
         //test4();
-        
+
         //filter
         //test5();
-        
+
         //multi stream source union
         //test6();
 
@@ -38,15 +46,13 @@ public class NumberStreamDemo {
         //test7();
 
         // split 根据规则把一个数据流切分为多个流，select和split配合使用，选择切分后的流
-        //test8();
+        // test8();
 
         // 自定义分区需要实现Partitioner接口
-        //test9();
+        // test9();
 
 
     }
-
-
 
     private static void test9() throws Exception {
 
@@ -297,15 +303,64 @@ public class NumberStreamDemo {
         DataStream<Long> num = text.map(new MapFunction<Long, Long>() {
             @Override
             public Long map(Long value) throws Exception {
-                System.out.println("接受到数据：" + value);
                 return value;
             }
         });
+
+
+        DataStream<TestBean> testBeanStream = num.map(new MapFunction<Long, TestBean>() {
+            @Override
+            public TestBean map(Long value) throws Exception {
+                if (value % 2 == 0) {
+                    System.out.println("接受到数据：" + new TestBean("a", value, 1L).toString());
+                    return new TestBean("a", value, 1L);
+                }
+                System.out.println("接受到数据：" + new TestBean("b", value, 1L).toString());
+                return new TestBean("b", value, 1L);
+            }
+        });
+
+
         //每2秒钟处理一次数据
-        DataStream<Long> sum = num.timeWindowAll(Time.seconds(2)).sum(0);
-        sum.print().setParallelism(1);
+
+        testBeanStream.keyBy("word").timeWindow(Time.seconds(3))
+                .reduce(new ReduceFunction<TestBean>() {
+                    @Override
+                    public TestBean reduce(TestBean first, TestBean second) throws Exception {
+                        return new TestBean(first.word, (first.value + second.value) / (first.count + second.count), first.count + second.count);
+                    }
+                })
+//                .sum("value")
+                .print();
+
         String jobName = NumberStreamDemo.class.getSimpleName();
         env.execute(jobName);
+    }
+
+    public static class TestBean {
+
+        public String word;
+        public long value;
+        public long count;//1
+
+        public TestBean() {
+        }
+
+        public TestBean(String word, long value, long count) {
+            this.word = word;
+            this.count = count;
+            this.value = value;
+        }
+
+        @Override
+        public String toString() {
+            return "TestBean{" +
+                    "word='" + word + '\'' +
+                    ", value=" + value +
+                    ", count=" + count +
+                    '}';
+        }
+
     }
 
 }

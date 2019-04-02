@@ -32,7 +32,7 @@ public class WordCountDemo {
         // MapPartition：类似map，一次处理一个分区的数据【如果在进行map处理的时候需要获取第三方资源链接，建议使用MapPartition】
 
         //map
-        //test1(text);
+        // test1(text);
 
         //map partition - batch
         //test2();
@@ -50,7 +50,7 @@ public class WordCountDemo {
         //test6();
 
         //sort partition 在本地对数据集的所有分区进行排序，通过sortPartition()的链接调用来完成对多个字段的排序
-        test7();
+        // test7();
 
 
     }
@@ -82,6 +82,8 @@ public class WordCountDemo {
 
         //不分组，全局排序获取集合中的前3个元素，针对第一个元素升序，第二个元素倒序
         text.sortPartition(0, Order.ASCENDING).sortPartition(1, Order.DESCENDING).first(3).print();
+        text.sortPartition(0, Order.ASCENDING).sortPartition(1, Order.DESCENDING).first(3).print();
+
 
 
     }

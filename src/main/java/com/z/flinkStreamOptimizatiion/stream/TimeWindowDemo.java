@@ -45,7 +45,8 @@ public class TimeWindowDemo {
         // test5();
 
         // 测试 flink中的rpc调用（比如flatmap）
-        test6();
+        // test6();
+
 
     }
 

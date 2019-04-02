@@ -9,13 +9,19 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrdernessTimestampExtractor;
 import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
+import org.apache.flink.streaming.api.windowing.assigners.TumblingProcessingTimeWindows;
 import org.apache.flink.streaming.api.windowing.time.Time;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.text.SimpleDateFormat;
+import java.util.concurrent.TimeUnit;
 
 import static com.z.flinkStreamOptimizatiion.stream.WindowComputeUtil.myGetWindowStartWithOffset;
 
 public class StreamJoinDemo {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(StreamJoinDemo.class);
 
     /**
      * 只有在一个窗口内的数据才能join
@@ -25,11 +31,46 @@ public class StreamJoinDemo {
     public static void main(String[] args) throws Exception {
 
         // 双流join
-        test1();
+        //test1();
+
+        // default join
+        test2();
 
 
 
 
+    }
+
+    private static void test2() throws Exception {
+        //毫秒为单位
+        int windowSize = 10;
+        long delay = 5100L;
+
+
+        final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+        env.setParallelism(1);
+
+        // 设置数据源
+        DataStream<Tuple3<String, String, Long>> leftSource = env.addSource(new StreamJoinDataSource1()).name("Demo Source");
+        DataStream<Tuple3<String, String, Long>> rightSource = env.addSource(new StreamJoinDataSource2()).name("Demo Source");
+
+
+        // join 操作
+        leftSource.join(rightSource)
+                .where(new LeftSelectKey())
+                .equalTo(new RightSelectKey())
+                .window(TumblingProcessingTimeWindows.of(Time.of(5, TimeUnit.SECONDS)))
+                .apply(new JoinFunction<Tuple3<String, String, Long>, Tuple3<String, String, Long>, Tuple5<String, String, String, Long, Long>>() {
+                    @Override
+                    public Tuple5<String, String, String, Long, Long> join(Tuple3<String, String, Long> first, Tuple3<String, String, Long> second) {
+                        LOGGER.info("触发双流join窗口运算");
+                        return new Tuple5<>(first.f0, first.f1, second.f1, first.f2, second.f2);
+                    }
+                }).print();
+
+
+        env.execute("TimeWindowDemo");
     }
 
     /**
