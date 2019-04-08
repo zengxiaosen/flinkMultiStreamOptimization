@@ -307,23 +307,38 @@ public class NumberStreamDemo {
             }
         });
 
-
-        DataStream<TestBean> testBeanStream = num.map(new MapFunction<Long, TestBean>() {
+        DataStream<TestBean> testBeanStream = num.filter(new FilterFunction<Long>() {
+            @Override
+            public boolean filter(Long value) throws Exception {
+                if (value % 2 == 0) {
+                    return true;
+                }
+                return false;
+            }
+        }).map(new MapFunction<Long, TestBean>() {
             @Override
             public TestBean map(Long value) throws Exception {
-                if (value % 2 == 0) {
-                    System.out.println("接受到数据：" + new TestBean("a", value, 1L).toString());
-                    return new TestBean("a", value, 1L);
+                System.out.println("接受到数据：" + new TestBean("a", value, 1L).toString());
+                return new TestBean("a", value, 1L);
+            }
+        });
+        DataStream<TestBean> testBeanStream2 = num.filter(new FilterFunction<Long>() {
+            @Override
+            public boolean filter(Long value) throws Exception {
+                if (value % 2 != 0) {
+                    return true;
                 }
+                return false;
+            }
+        }).map(new MapFunction<Long, TestBean>() {
+            @Override
+            public TestBean map(Long value) throws Exception {
                 System.out.println("接受到数据：" + new TestBean("b", value, 1L).toString());
                 return new TestBean("b", value, 1L);
             }
         });
 
-
-        //每2秒钟处理一次数据
-
-        testBeanStream.keyBy("word").timeWindow(Time.seconds(3))
+        testBeanStream.union(testBeanStream2).keyBy("word").timeWindow(Time.seconds(2), Time.seconds(10))
                 .reduce(new ReduceFunction<TestBean>() {
                     @Override
                     public TestBean reduce(TestBean first, TestBean second) throws Exception {
